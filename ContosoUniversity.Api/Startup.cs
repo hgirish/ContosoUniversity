@@ -6,9 +6,11 @@ using AutoMapper;
 using ContosoUniversity.Data;
 using ContosoUniversity.Data.Abstract;
 using ContosoUniversity.Data.Repositories;
+using ContosoUniversity.Model;
 using ContosoUniversity.Model.ViewModels.Mapping;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,6 +37,23 @@ namespace ContosoUniversity.Api
                     b => b.MigrationsAssembly("ContosoUniversity.Api"));
             });
 
+            // services.AddTransient<DbInitializer>();
+
+            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.Password.RequireDigit = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequiredLength = 6;
+                options.User.AllowedUserNameCharacters = null;
+                options.SignIn.RequireConfirmedEmail = true;
+
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+                options.Lockout.MaxFailedAccessAttempts = 5;
+            }).AddEntityFrameworkStores<ContosoContext>()
+            .AddDefaultTokenProviders();
+
             Mapper.Initialize(cfg =>
             {
                 cfg.AddProfile(new MappingProfile());
@@ -46,7 +65,7 @@ namespace ContosoUniversity.Api
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env            )
         {
             if (env.IsDevelopment())
             {
@@ -54,6 +73,8 @@ namespace ContosoUniversity.Api
             }
 
             app.UseMvc();
+
+            //seeder.InitializeData().Wait();
         }
     }
 }

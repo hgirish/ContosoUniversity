@@ -1,4 +1,4 @@
-﻿using ContosoUniversity.Data.Abstract;
+using ContosoUniversity.Data.Abstract;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -70,7 +70,7 @@ namespace ContosoUniversity.Data.Repositories
 
         public T GetSingle(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includeProperties)
         {
-            throw new NotImplementedException();
+            return _context.Set<T>().FirstOrDefault(predicate);
         }
 
         public void Update(T entity)

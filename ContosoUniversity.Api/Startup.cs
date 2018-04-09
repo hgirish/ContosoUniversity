@@ -2,8 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
+using ContosoUniversity.Data;
+using ContosoUniversity.Data.Abstract;
+using ContosoUniversity.Data.Repositories;
+using ContosoUniversity.Model.ViewModels.Mapping;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -23,7 +29,20 @@ namespace ContosoUniversity.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<ContosoContext>(options =>
+            {
+                options.UseSqlServer(Configuration.GetConnectionString("ContosoUniversity"),
+                    b => b.MigrationsAssembly("ContosoUniversity.Api"));
+            });
+
+            Mapper.Initialize(cfg =>
+            {
+                cfg.AddProfile(new MappingProfile());
+            });
+            Mapper.AssertConfigurationIsValid();
             services.AddMvc();
+
+            services.AddScoped<ICoursesRepository, CoursesRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

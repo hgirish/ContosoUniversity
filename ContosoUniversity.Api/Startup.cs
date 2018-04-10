@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -62,6 +62,7 @@ namespace ContosoUniversity.Api
             services.AddMvc();
 
             services.AddScoped<ICoursesRepository, CoursesRepository>();
+            services.AddScoped<IInstructorsRepository, InstructorsRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

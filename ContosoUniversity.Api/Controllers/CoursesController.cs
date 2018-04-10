@@ -56,7 +56,8 @@ namespace ContosoUniversity.Api.Controllers
         [HttpGet("all")]
         public IActionResult GetAll()
         {
-            IEnumerable<Course> courses = _coursesRepository.GetAll();
+            IEnumerable<Course> courses = _coursesRepository.AllIncluding(c=>c.Department).OrderBy(c=>c.CourseID);
+                
             var coursesVM = Mapper.Map<IEnumerable<Course>,
                 IEnumerable<CourseViewModel>>(courses);
 
@@ -87,6 +88,73 @@ namespace ContosoUniversity.Api.Controllers
                 return Ok(department);
             }
             return StatusCode(500);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody]CourseViewModel course)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var newCourse = new Course
+            {
+                CourseID = course.CourseID,
+                Title = course.Title,
+                Credits = course.Credits,
+                DepartmentID = course.DepartmentID
+            };
+
+            await _coursesRepository.AddAsync(newCourse);
+            await _coursesRepository.CommitAsync();
+            // Call GetSingle to get newly inserted Course with Department name.
+             newCourse = _coursesRepository.GetSingle(c => c.CourseID == course.CourseID,
+                c => c.Department);
+            course = Mapper.Map<Course, CourseViewModel>(newCourse);
+
+            return CreatedAtRoute("GetCourse", new { controller = "Courses", id = course.CourseID }, course);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Put(int? id, [FromBody]CourseViewModel course)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            Course updateCourse = _coursesRepository.GetSingle(s => s.CourseID == id);
+
+            if (updateCourse == null)
+            {
+                return NotFound();
+            }
+            updateCourse.Title = course.Title;
+            updateCourse.Credits = course.Credits;
+            updateCourse.DepartmentID = course.DepartmentID;
+
+            await _coursesRepository.CommitAsync();
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int? id)
+        {
+            var deleteCourse = _coursesRepository.GetSingle(c => c.CourseID == id, c => c.Department);
+
+            if (deleteCourse == null)
+            {
+                return NotFound();
+            }
+            _coursesRepository.Delete(deleteCourse);
+            await _coursesRepository.CommitAsync();
+            return NoContent();
         }
     }
 }

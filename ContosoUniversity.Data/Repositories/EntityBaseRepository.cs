@@ -1,5 +1,6 @@
 using ContosoUniversity.Data.Abstract;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,9 +19,10 @@ namespace ContosoUniversity.Data.Repositories
         {
             _context = context;
         }
-        public Task AddAsync(T entity)
+        public virtual async  Task AddAsync(T entity)
         {
-            throw new NotImplementedException();
+            var dbEntityEntry = _context.Entry<T>(entity);
+            await _context.Set<T>().AddAsync(entity);
         }
 
         public virtual IEnumerable<T> AllIncluding(params Expression<Func<T, object>>[] includeProperties)
@@ -33,9 +35,9 @@ namespace ContosoUniversity.Data.Repositories
             return query.AsEnumerable();
         }
 
-        public Task CommitAsync()
+        public virtual async  Task CommitAsync()
         {
-            throw new NotImplementedException();
+            await _context.SaveChangesAsync();
         }
 
         public async Task<int> CountsAsync()
@@ -45,17 +47,22 @@ namespace ContosoUniversity.Data.Repositories
 
         public void Delete(T entity)
         {
-            throw new NotImplementedException();
+            var entry = _context.Entry<T>(entity);
+            entry.State = EntityState.Deleted;
         }
 
         public void DeleteWhere(Expression<Func<T, bool>> predicate)
         {
-            throw new NotImplementedException();
+            var entities = _context.Set<T>().Where(predicate);
+            foreach (var entity in entities)
+            {
+                _context.Entry<T>(entity).State = EntityState.Deleted;
+            }
         }
 
         public IEnumerable<T> FindBy(Expression<Func<T, bool>> predicate)
         {
-            throw new NotImplementedException();
+            return _context.Set<T>().Where(predicate);
         }
 
         public virtual  IEnumerable<T> GetAll()
@@ -65,17 +72,23 @@ namespace ContosoUniversity.Data.Repositories
 
         public T GetSingle(Expression<Func<T, bool>> predicate)
         {
-            throw new NotImplementedException();
+            return _context.Set<T>().FirstOrDefault(predicate);
         }
 
         public T GetSingle(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includeProperties)
         {
-            return _context.Set<T>().FirstOrDefault(predicate);
+            IQueryable<T> query = _context.Set<T>();
+            foreach (var prop in includeProperties)
+            {
+                query = query.Include(prop);
+            }
+            return query.FirstOrDefault(predicate);
         }
 
         public void Update(T entity)
         {
-            throw new NotImplementedException();
+            EntityEntry dbEntityEntry = _context.Entry<T>(entity);
+            dbEntityEntry.State = EntityState.Modified;
         }
     }
 }

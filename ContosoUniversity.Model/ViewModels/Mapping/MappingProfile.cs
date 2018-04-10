@@ -10,6 +10,8 @@ namespace ContosoUniversity.Model.ViewModels.Mapping
         public MappingProfile()
         {
             CreateMap<Course, CourseViewModel>()
+                .ForMember(vm=>vm.Department, opt=> opt.MapFrom(c=>c.Department.Name))
+                .ForMember(vm=>vm.DepartmentID, opt=> opt.MapFrom(c=>c.DepartmentID))
                 .ForMember(vm=>vm.Assigned, opt=> opt.UseValue(false));
         }
     }

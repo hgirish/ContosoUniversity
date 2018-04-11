@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using ContosoUniversity.Api.Core;
 using ContosoUniversity.Data.Abstract;
 using ContosoUniversity.Model;
@@ -55,16 +56,28 @@ namespace ContosoUniversity.Api.Controllers
 
             Response.AddPagination(page, pageSize, totalInstructors, totalPages);
 
-            IEnumerable<InstructorViewModel> vm = AutoMapper.Mapper.Map<IEnumerable<Instructor>, IEnumerable<InstructorViewModel>>(instructors);
+            IEnumerable<InstructorViewModel> vm = Mapper.Map<IEnumerable<Instructor>, IEnumerable<InstructorViewModel>>(instructors);
 
             return Ok(vm);
         }
 
         // GET api/<controller>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        [HttpGet("{id}", Name ="GetInstuctor")]
+        public IActionResult Get(int id)
         {
-            return "value";
+            Instructor instructor = _instructorsRepository
+                .GetSingle(i => i.InstructorID == id, i => i.CourseAssignments, 
+                i => i.OfficeAssignment);
+
+            if (instructor != null)
+            {
+                InstructorEditViewModel vm = Mapper.Map<Instructor, InstructorEditViewModel>(instructor);
+                vm.AssignedCourses = _instructorsRepository.GetAssignedCourses(instructor);
+
+                return Ok(vm);
+
+            }
+            return NotFound();
         }
 
         // POST api/<controller>

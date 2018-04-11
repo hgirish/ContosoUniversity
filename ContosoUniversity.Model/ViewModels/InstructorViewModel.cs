@@ -9,7 +9,7 @@ using ContosoUniversity.Model.ViewModels.Validations;
 namespace ContosoUniversity.Model.ViewModels
 {
     public class InstructorViewModel : IInstructor, IValidatableObject {
-        public int ID { get; set; }
+        public int InstructorID { get; set; }
         public string LastName { get; set; }
         public string FirstName { get; set; }
         public DateTime HireDate { get; set; }

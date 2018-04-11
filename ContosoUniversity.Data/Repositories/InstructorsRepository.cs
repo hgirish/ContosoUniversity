@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using ContosoUniversity.Data.Abstract;
 using ContosoUniversity.Model;
+using ContosoUniversity.Model.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace ContosoUniversity.Data.Repositories
@@ -26,6 +27,27 @@ namespace ContosoUniversity.Data.Repositories
                 .OrderBy(i => i.LastName);
 
             return result;
+        }
+
+        public IEnumerable<AssignedCourseViewModel> GetAssignedCourses(Instructor instructor)
+        {
+            var allCourses = _context.Courses;
+            var instructorCourses = new HashSet<int>(instructor.CourseAssignments
+                .Select(c => c.CourseID));
+            var viewModel = new List<AssignedCourseViewModel>();
+
+            foreach (var course in allCourses)
+            {
+                viewModel.Add(new AssignedCourseViewModel
+                {
+                    CourseID = course.CourseID,
+                    Title = course.Title,
+                    Assigned = instructorCourses.Contains(course.CourseID)
+                });
+            }
+
+            return viewModel;
+
         }
     }
 }
